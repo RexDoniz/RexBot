@@ -1,28 +1,33 @@
-from tokens import cmc_token
+# unbot.py
+import requests  
+import os
+from flask import Flask, request
+# Add your telegram token as environment variable
+BOT_URL = f'https://api.telegram.org/bot{os.environ["1128246059:AAH4PDhgzwiCVrJ2xkfw8dMKD-4hZ07ugWA"]}/'
 
-import json
 
-import requests
+app = Flask(__name__)
 
-def write_json(data, filename='response.json'):
-    with open(filename, 'w') as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
 
-def get_cmc_data(crypto):
-    url = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/lastest'
-    params = {'symbol': crypto, 'convert': 'USD'}
-    headers = {'X-CMC_PRO_API_KEY': cmc_token}
+@app.route('/', methods=['POST'])
+def main():  
+    data = request.json
 
-    r = requests.get(url, headers=headers, params=params).json()
+    print(data)  # Comment to hide what Telegram is sending you
+    chat_id = data['message']['chat']['id']
+    message = data['message']['text']
 
-    price = r['data'][crypto]['quote']['USD']['price']
+    json_data = {
+        "chat_id": chat_id,
+        "text": message,
+    }
 
-    return price
+    message_url = BOT_URL + 'sendMessage'
+    requests.post(message_url, json=json_data)
 
-def main():
-    print (get_cmc_data('BTC'))
+    return ''
 
-    # https://api.telegram.org/bot1128246059:AAH4PDhgzwiCVrJ2xkfw8dMKD-4hZ07ugWA/getMe
 
-if __name__ == '__main__':
-    main()
+if __name__ == '__main__':  
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
